@@ -18,12 +18,12 @@ fs.readFile("input.txt", "utf8", (err, data) => {
 
   console.log({ amountOfXmas });
 
-  calculateDiagonals(matrix2d);
+  console.log(calculateDiagonals(matrix2d));
 });
 
 const countXmas = (sampleArray) => {
   const xmasMatcher = /XMAS/g;
-  const samxMatcher = /SAMX/g;
+  const samxMatcher = /XSAM/g;
   const stringedArray = sampleArray.join("");
   const xmmatches = stringedArray.match(xmasMatcher);
   const smmatches = stringedArray.match(samxMatcher);
