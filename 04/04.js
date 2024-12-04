@@ -1,53 +1,47 @@
-const fs = require('node:fs')
+const fs = require('node:fs').promises
 
-fs.readFile('input.txt', 'utf8', (err, data) => {
-  if (err) {
-    console.error(err)
-    return
-  }
-  // make 2d matrix
-  const matrix2d = data.split('\n').map((node) => node.split(''))
-  //  console.log(matrix2d);
+async function main() {
+  try {
+    const data = await fs.readFile('input.txt', 'utf8')
+    const matrix2d = data.split('\n').map((node) => node.split(''))
 
-  console.log(
-    calculateRows(matrix2d) +
-      calcucateColumns(matrix2d) +
+    return (
+      calculateRows(matrix2d) +
+      calculateColumns(matrix2d) +
       calculateDiagonals(matrix2d)
-  )
-
-  // calculate diagonals
-})
+    )
+  } catch (e) {
+    console.log(e)
+  }
+}
 
 const countXmas = (sampleArray) => {
-  const xmasMatcher = /XMAS/g
-  const samxMatcher = /SAMX/g
   const stringedArray = sampleArray.join('')
-  const xmmatches = stringedArray.match(xmasMatcher)
-  const smmatches = stringedArray.match(samxMatcher)
-  const abba = xmmatches ? xmmatches.length : 0
-  const babba = smmatches ? smmatches.length : 0
-  return abba + babba
+  const xmmatches = stringedArray.match(/XMAS/g)
+  const smmatches = stringedArray.match(/SAMX/g)
+
+  return (xmmatches ? xmmatches.length : 0) + (smmatches ? smmatches.length : 0)
 }
 
 const calculateRows = (matrix) =>
   matrix.reduce((prev, row) => prev + countXmas(row), 0)
 
-const calcucateColumns = (matrix) => {
-  return matrix.reduce((prev, row, index, self) => {
-    let pystyrivi = []
-    row.forEach((item, indexCol) => {
-      try {
-        pystyrivi.push(self[indexCol][index])
-      } catch (e) {}
-    })
-    return prev + countXmas(pystyrivi)
-  }, 0)
-}
+const calculateColumns = (matrix) =>
+  matrix.reduce(
+    (prev, row, index, self) =>
+      prev +
+      countXmas(
+        row.map((_item, indexCol) => {
+          return self[indexCol] ? self[indexCol][index] : ''
+        })
+      ),
+    0
+  )
 
 const calculateDiagonals = (matrix) => {
   let allDiagonals = []
-  const numRows = matrix.length // montako riviä
-  const numCols = matrix[0].length // montako per rivi
+  const numRows = matrix.length
+  const numCols = matrix[0].length
 
   for (let start = 0; start < numRows; start++) {
     let diagonal = []
@@ -59,7 +53,6 @@ const calculateDiagonals = (matrix) => {
       col++
     }
     allDiagonals.push(diagonal)
-    // console.log({ diagonal, count: countXmas(diagonal) });
   }
 
   for (let start = 1; start < numCols; start++) {
@@ -72,7 +65,6 @@ const calculateDiagonals = (matrix) => {
       col++
     }
     allDiagonals.push(diagonal)
-    //   console.log({ diagonal, count: countXmas(diagonal) });
   }
 
   for (let start = 0; start < numRows; start++) {
@@ -85,7 +77,6 @@ const calculateDiagonals = (matrix) => {
       col--
     }
     allDiagonals.push(diagonal)
-    // console.log({ diagonal, count: countXmas(diagonal) });
   }
 
   for (let start = numCols - 2; start >= 0; start--) {
@@ -98,10 +89,11 @@ const calculateDiagonals = (matrix) => {
       col--
     }
     allDiagonals.push(diagonal)
-    //  console.log({ diagonal, count: countXmas(diagonal) });
   }
 
   return allDiagonals.reduce((prev, curr) => {
     return prev + countXmas(curr)
   }, 0)
 }
+
+module.exports = main

@@ -13,7 +13,6 @@ fs.readFile('input.txt', 'utf8', (err, data) => {
     row.forEach((node, idex) => {
       const currentMarker = node
       if (isEitherSorM(node)) {
-        // correct start
         if (
           matrix2d[rowIndex + 1] &&
           matrix2d[rowIndex + 1][idex + 1] === 'A'
@@ -37,5 +36,5 @@ fs.readFile('input.txt', 'utf8', (err, data) => {
 })
 
 const isEitherSorM = (input) => input === 'S' || input == 'M'
-const isOtherThanPrevious = (input, prvevious) =>
-  (input === 'S' && prvevious === 'M') || (input == 'M' && prvevious === 'S')
+const isOtherThanPrevious = (input, previous) =>
+  (input === 'S' && previous === 'M') || (input == 'M' && previous === 'S')
