@@ -9,13 +9,10 @@ async function main() {
         .filter((node) => node !== '')
 
     const instructionManual = createInstructionManueal(instructions)
-    // console.log(instructionManual)
 
     const invalidUpdates = getValidUpdates(updates, instructionManual, false)
 
     const validones = await handleAll(invalidUpdates, instructionManual)
-
-    //  console.log(validones)
 
     const result = validones.reduce((prev, curr) => {
         return prev + Number(curr[Math.floor(curr.length / 2)])
@@ -155,19 +152,11 @@ const getValidUpdates = (updates, instructionManual, valid = true) => {
         let hasAlreadyError = false
 
         update.split(',').forEach((updateItem, itemIndex, allItems) => {
-            const { beforeItems, afterItems } = splitArrayByIndex(
-                allItems,
-                itemIndex
-            )
+            const { afterItems } = splitArrayByIndex(allItems, itemIndex)
 
-            beforeItems.forEach((bfItem) => {
-                if (!instructionManual[updateItem].previous.includes(bfItem)) {
-                }
-            })
             afterItems.forEach((afItem) => {
                 if (!instructionManual[updateItem].next.includes(afItem)) {
                     hasAlreadyError = true
-                    // console.log({ updateItem, update, type: 'after', afItem })
                 }
             })
         })
