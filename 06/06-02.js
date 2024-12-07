@@ -9,7 +9,7 @@ const WALL = '#'
 
 async function main() {
     try {
-        const data = await fs.readFile('it.txt', 'utf8')
+        const data = await fs.readFile('input.txt', 'utf8')
 
         const allInOne = data.split('\n')
         const matrix2d = allInOne.map((node) => node.split(''))
@@ -25,7 +25,7 @@ async function main() {
             visitedPoints: [start[0], start[1]], // move start one up
             direction: UP,
             splitPoint: null,
-            last4Walls: createFIFOSlots(),
+            wallsAfterSplit: [],
         }
         const stack = [{ ...startStack }]
         while (stack.length > 0) {
@@ -184,7 +184,7 @@ const getNewStackItem = (
     isWall = false
 ) => {
     let splitDirection = null
-
+    let newWalls = []
     if (flipSplit) {
         splitDirection = [oldStack.direction]
     } else if (comingToOurWallFromDirection) {
@@ -194,7 +194,10 @@ const getNewStackItem = (
     }
 
     if (isWall) {
-        oldStack.last4Walls.add(oldStack.currentPoint)
+        newWalls = [
+            ...oldStack.wallsAfterSplit,
+            `${oldStack.currentPoint.toString()}+${oldStack.direction}`,
+        ]
     }
 
     return {
@@ -205,13 +208,15 @@ const getNewStackItem = (
         hasSplit: flipSplit ? !oldStack.hasSplit : oldStack.hasSplit,
         splitPoint: nextPoint2 ? nextPoint2 : oldStack.splitPoint,
         splitDirection,
-        last4Walls: oldStack.last4Walls,
+        wallsAfterSplit: isWall ? newWalls : oldStack.wallsAfterSplit,
     }
 }
 
 const detectLoop = (stackItem) => {
     if (
-        stackItem.last4Walls.getSlots()[0] === stackItem.currentPoint.toString()
+        stackItem.wallsAfterSplit.includes(
+            `${stackItem.currentPoint.toString()}+${stackItem.direction}`
+        )
     ) {
         //   console.log('neljän seinän looppi')
 
