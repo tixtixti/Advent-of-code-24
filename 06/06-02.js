@@ -21,7 +21,6 @@ async function main() {
 
         const startStack = {
             currentPoint: [start[0], start[1]], // move start one up
-            hasSplit: false,
             visitedPoints: [start[0], start[1]], // move start one up
             direction: UP,
             splitPoint: null,
@@ -33,19 +32,17 @@ async function main() {
             const currentCoord = currentStack.currentPoint
 
             if (!matrix2d[currentCoord[0]]) {
-                // console.log('exit')
                 continue
             }
             const current = matrix2d[currentCoord[0]][currentCoord[1]]
             if (!current) {
-                //  console.log('exit')
                 continue
             }
             switch (current) {
                 case '^':
                 case FLOOR: {
                     // . ei olla splitattu
-                    if (!currentStack.hasSplit) {
+                    if (!currentStack.splitPoint) {
                         // jatka normaalisti
                         const nextPoint = getNextPoint(
                             currentStack.direction,
@@ -54,9 +51,8 @@ async function main() {
                         stack.push(
                             getNewStackItem(nextPoint, { ...currentStack })
                         )
-                        // ja splittaa kivellä
+                        // ja splittaa kivellä, vain jos siinä ei oo jo kiveä
                         if (barrels.has(currentStack.currentPoint.toString())) {
-                            console.log('oltiin jo')
                             break
                         } else {
                             barrels.add(currentStack.currentPoint.toString())
@@ -68,9 +64,7 @@ async function main() {
                                 newPoint,
                                 { ...currentStack },
                                 newDirection,
-                                true,
                                 currentStack.currentPoint,
-                                false,
                                 true
                             )
                         )
@@ -80,11 +74,8 @@ async function main() {
                         currentStack.splitPoint.toString() ===
                         currentCoord.toString()
                     ) {
-                        // console.log('custom wall')
-                        // deteck loop and kill
                         if (detectLoop(currentStack)) {
                             loops.push(currentStack.splitPoint)
-                            console.log(loops.length)
                             continue
                         }
 
@@ -97,8 +88,6 @@ async function main() {
                                 currentStack,
                                 newDirection,
                                 false,
-                                false,
-                                true,
                                 true
                             )
                         )
@@ -118,11 +107,8 @@ async function main() {
                 }
 
                 case WALL: {
-                    // console.log(currentStack.currentPoint)
                     if (detectLoop(currentStack)) {
                         loops.push(currentStack.splitPoint)
-                        console.log(loops.length)
-
                         continue
                     }
                     const { newDirection, newPoint } = handleWall(currentStack)
@@ -132,8 +118,6 @@ async function main() {
                             currentStack,
                             newDirection,
                             false,
-                            false,
-                            false,
                             true
                         )
                     )
@@ -141,7 +125,6 @@ async function main() {
                 }
             }
         }
-        console.log(loops.length)
         return loops
     } catch (e) {
         console.log(e)
@@ -178,57 +161,28 @@ const getNewStackItem = (
     nextPoint,
     oldStack,
     newDirection,
-    flipSplit = false,
     nextPoint2 = false,
-    comingToOurWallFromDirection = false,
     isWall = false
 ) => {
-    let splitDirection = null
-    let newWalls = []
-    if (flipSplit) {
-        splitDirection = [oldStack.direction]
-    } else if (comingToOurWallFromDirection) {
-        splitDirection = [...oldStack.splitDirection, oldStack.direction]
-    } else {
-        splitDirection = oldStack.splitDirection
-    }
-
-    if (isWall) {
-        newWalls = [
-            ...oldStack.wallsAfterSplit,
-            `${oldStack.currentPoint.toString()}+${oldStack.direction}`,
-        ]
-    }
-
     return {
         ...oldStack,
         currentPoint: nextPoint,
         visitedPoints: [...oldStack.visitedPoints, nextPoint],
         direction: newDirection ? newDirection : oldStack.direction,
-        hasSplit: flipSplit ? !oldStack.hasSplit : oldStack.hasSplit,
         splitPoint: nextPoint2 ? nextPoint2 : oldStack.splitPoint,
-        splitDirection,
-        wallsAfterSplit: isWall ? newWalls : oldStack.wallsAfterSplit,
+        wallsAfterSplit: isWall
+            ? [
+                  ...oldStack.wallsAfterSplit,
+                  `${oldStack.currentPoint.toString()}+${oldStack.direction}`,
+              ]
+            : oldStack.wallsAfterSplit,
     }
 }
 
-const detectLoop = (stackItem) => {
-    if (
-        stackItem.wallsAfterSplit.includes(
-            `${stackItem.currentPoint.toString()}+${stackItem.direction}`
-        )
-    ) {
-        //   console.log('neljän seinän looppi')
-
-        return true
-    }
-    return false
-    return (
-        stackItem.hasSplit &&
-        stackItem.splitDirection.includes(stackItem.direction) &&
-        stackItem.splitPoint.toString() === stackItem.currentPoint.toString()
+const detectLoop = (stackItem) =>
+    stackItem.wallsAfterSplit.includes(
+        `${stackItem.currentPoint.toString()}+${stackItem.direction}`
     )
-}
 
 const handleWall = (currentStack) => {
     const currentCoord = currentStack.currentPoint
@@ -254,19 +208,4 @@ const handleWall = (currentStack) => {
     return { newDirection, newPoint }
 }
 
-function createFIFOSlots(maxSlots = 4) {
-    const slots = [] // Initialize an empty array
-
-    return {
-        add(subarray) {
-            if (slots.length >= maxSlots) {
-                slots.shift() // Remove the oldest subarray (FIFO behavior)
-            }
-            slots.push(subarray.toString()) // Add the new subarray to the end
-        },
-        getSlots() {
-            return [...slots] // Return a copy of the slots
-        },
-    }
-}
 main()

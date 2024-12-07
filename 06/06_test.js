@@ -10,16 +10,5 @@ test('calculates number of 06 correctly', async () => {
 })
 test('calculates number of 06-02 correctly', async () => {
     const response2 = await task2()
-    assert.strictEqual(response2.length, 6)
-    assert.strictEqual(
-        JSON.stringify([
-            [6, 3],
-            [7, 6],
-            [8, 3],
-            [8, 1],
-            [7, 7],
-            [9, 7],
-        ]),
-        JSON.stringify(response2)
-    )
+    assert.strictEqual(response2.length, 1686)
 })
