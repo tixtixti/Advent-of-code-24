@@ -1,7 +1,7 @@
 const fs = require('node:fs').promises
 
 async function main() {
-    const data = await fs.readFile('it.txt', 'utf8')
+    const data = await fs.readFile('input.txt', 'utf8')
     const splitArray = data.split('\n').map((node) => node.split(': '))
     return splitArray.reduce((prev, task) => {
         const total = task[0]
