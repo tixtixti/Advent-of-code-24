@@ -5,5 +5,5 @@ const task = require('./09.js')
 
 test('calculates number of 09 correctly', async () => {
     const response = await task()
-    assert.strictEqual(response, 1928)
+    assert.strictEqual(response, 6320029754031)
 })

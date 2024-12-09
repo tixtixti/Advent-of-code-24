@@ -2,50 +2,47 @@ const fs = require('node:fs').promises
 
 async function main() {
     const input = await (await fs.readFile('input.txt', 'utf8')).split('')
-    let indexe = 0
-    const ogOrder = input.map((node, index) => {
-        if (index % 2) {
-            return '.'.repeat(node)
-        } else {
-            const abba = indexe.toString().repeat(node)
-            indexe++
-            return abba
-        }
-    })
-    let copy = [...ogOrder.join('')]
-    console.log([...copy].reverse().splice(0, 100).join(''))
-    console.log([...copy].splice(0, 100).join(''))
-    let index = 0
-    let endIndex = 9999 // kokeile haskata ne niiku alkioina eikä numeroina.
-    while (true) {
-        const firstFreeSpace = copy.indexOf('.')
+    const withNodesAndSpaces = input
+        .map((node, index) => {
+            if (index % 2) {
+                return '.'.repeat(node).split('')
+            } else {
+                let temp = []
+                const id = Math.floor(index / 2).toString()
+                for (let index = 0; index < node; index++) {
+                    temp.push(id)
+                }
+                return temp
+            }
+        })
+        .filter((node) => node[0])
 
-        if (firstFreeSpace === -1) {
+    while (true) {
+        let break2 = false
+        let nodeToInsert = withNodesAndSpaces.pop()
+        if (!nodeToInsert.includes('.')) {
+            nodeToInsert.forEach((smallNode) => {
+                const firstFreeNode = withNodesAndSpaces.findIndex((node) =>
+                    node.includes('.')
+                )
+                if (firstFreeNode === -1) {
+                    break2 = true
+                    withNodesAndSpaces.push(smallNode)
+                } else {
+                    let firstSlot =
+                        withNodesAndSpaces[firstFreeNode].indexOf('.')
+                    withNodesAndSpaces[firstFreeNode][firstSlot] = smallNode
+                }
+            })
+        }
+        if (break2) {
             break
         }
-        let node = copy.pop()
-        if (node !== '.') {
-            copy[firstFreeSpace] = node
-            if (index < 30) {
-                console.log([...copy].splice(0, 100).join(''))
-            }
-            index++
-        }
     }
-    //console.log(copy.join(''))
 
-    console.log(copy.length, input.length)
-    const abba = copy.reduce((prev, curr, index) => {
-        if (curr === '.') {
-            console.log('KURRE')
-        }
+    return withNodesAndSpaces.flat().reduce((prev, curr, index) => {
         return prev + curr * index
     }, 0)
-
-    console.log(copy.reverse().splice(0, 100).join(''))
-    console.log(abba)
-    return abba
 }
 
-main()
 module.exports = main
