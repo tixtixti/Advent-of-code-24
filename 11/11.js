@@ -4,7 +4,6 @@ async function main(input, blinkNumber = 25) {
     let tempArry = array
     for (let index = 0; index < blinkNumber; index++) {
         tempArry = handleMap(tempArry)
-        console.log(tempArry.length)
     }
     return tempArry.length
 }
