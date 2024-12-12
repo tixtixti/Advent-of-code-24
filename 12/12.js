@@ -1,7 +1,7 @@
 const fs = require('node:fs').promises
 
-async function main(sides = false) {
-    const array2d = (await fs.readFile('it.txt', 'utf8'))
+async function main(filename) {
+    const array2d = (await fs.readFile(filename, 'utf8'))
         .split('\n')
         .map((node) => node.split(''))
 
@@ -13,24 +13,22 @@ async function main(sides = false) {
     const allIsles = allOccurances.map((occurance) => {
         return findAllIsles(occurance)
     })
-
+    /*
     const result = allIsles.flat().reduce((prev, curr) => {
         const perimeterCount = calculatePerimiter(curr)
         const area = curr.length
         const thisScore = perimeterCount * area
         return prev + thisScore
     }, 0)
+*/
 
-    console.log(calculateSides(allIsles[2][0]))
-    /*
     const result = allIsles.flat().reduce((prev, curr) => {
         const sideCount = calculateSides(curr)
-        console.log(sideCount)
         const area = curr.length
         const thisScore = sideCount * area
         return prev + thisScore
     }, 0)
-*/
+
     return result
 }
 
@@ -120,7 +118,7 @@ const calculatePerimiter = (isle) => {
 
 const calculateSides = (isle) => {
     const nodeSet = new Set(isle.map((node) => node.toString()))
-    let sideCount = 0
+
     let fences = new Set()
     isle.forEach((node) => {
         const [x, y] = node
@@ -130,115 +128,29 @@ const calculateSides = (isle) => {
             [x, y - 1],
             [x, y + 1],
         ]
-
         potentialNeighbors.forEach((potNei) => {
-            if (!nodeSet.has(potNei.toString())) {
-                sideCount++
-                if (node[0] - potNei[0] > 0) {
-                    fences.add('top/' + potNei.toString())
-                }
-                if (node[0] - potNei[0] < 0) {
-                    fences.add('bottom/' + potNei.toString())
-                }
-                if (node[1] - potNei[1] > 0) {
-                    fences.add('left/' + potNei.toString())
-                }
-                if (node[1] - potNei[1] > 0) {
-                    fences.add('right/' + potNei.toString())
-                }
-            }
+            findFences(potNei, fences, nodeSet, node)
         })
     })
+
     const arrayFences = Array.from(fences)
-
-    const tops = arrayFences
-        .filter((node) => node.includes('top'))
-        .map(helpFnForMapping)
-    const bottoms = arrayFences
-        .filter((node) => node.includes('bottom'))
-        .map(helpFnForMapping)
-    const lefts = arrayFences
-        .filter((node) => node.includes('left'))
-        .map(helpFnForMapping)
-    const rights = arrayFences
-        .filter((node) => node.includes('right'))
-        .map(helpFnForMapping)
-
-    let topSides = 0
-    const topCoordSet = new Set(tops.map((node) => node.toString()))
-    const bottomCoordSet = new Set(bottoms.map((node) => node.toString()))
-    const rightCoordSet = new Set(rights.map((node) => node.toString()))
-    const leftCoordSet = new Set(lefts.map((node) => node.toString()))
-    let topCount = 0
-    tops.forEach((topCoord) => {
-        const topCoordLeft = `${topCoord[0]},${topCoord[1] + 1}`
-        const topCoordRight = `${topCoord[0]},${topCoord[1] - 1}`
-        if (topCoordSet.has(topCoordLeft) || topCoordSet.has(topCoordRight)) {
-            // nothing
-        } else {
-            topCount++
-            topSides++
-        }
-    })
-    let bottomCount = 0
-    bottoms.forEach((topCoord) => {
-        console.log({ bottoms, bottomCoordSet })
-        const topCoordLeft = `${topCoord[0]},${topCoord[1] + 1}`
-        const topCoordRight = `${topCoord[0]},${topCoord[1] - 1}`
-        if (
-            bottomCoordSet.has(topCoordLeft) ||
-            bottomCoordSet.has(topCoordRight)
-        ) {
-            // nothing
-        } else {
-            bottomCount++
-            topSides++
-        }
-    })
-    let rightCount = 0
-
-    rights.forEach((topCoord) => {
-        const topCoordLeft = `${topCoord[0 + 1]},${topCoord[1]}`
-        const topCoordRight = `${topCoord[0] - 1},${topCoord[1]}`
-        if (
-            rightCoordSet.has(topCoordLeft) ||
-            rightCoordSet.has(topCoordRight)
-        ) {
-            // nothing
-        } else {
-            rightCount++
-            topSides++
-        }
-    })
-    let leftCount = 0
-    const visitedLeft = new Set()
-    console.log({ lefts })
-    lefts.forEach((topCoord) => {
-        const topCoordLeft = `${topCoord[0] - 1},${topCoord[1]}`
-        const topCoordRight = `${topCoord[0] + 1},${topCoord[1]}`
-        console.log({ topCoord, topCoordLeft, topCoordRight })
-        if (leftCoordSet.has(topCoordLeft) || leftCoordSet.has(topCoordRight)) {
-            if (!visitedLeft.has(topCoord.toString())) {
-                console.log(visitedLeft, topCoord)
-                leftCount++
-                visitedLeft.add(topCoord.toString())
-                visitedLeft.add(topCoordLeft)
-                visitedLeft.add(topCoordRight)
-            }
-            // nothing
-        } else {
-            leftCount++
-            topSides++
-        }
-    })
-
-    console.log({ leftCount, topCount, bottomCount, rightCount })
-    return (
-        Math.max(leftCount, 1) +
-        Math.max(rightCount, 1) +
-        Math.max(topCount, 1) +
-        Math.max(bottomCount, 1)
+    const tops = filterDirection(arrayFences, 'top').sort((a, b) => a[1] - b[1])
+    const bottoms = filterDirection(arrayFences, 'bottom').sort(
+        (a, b) => a[1] - b[1]
     )
+    const lefts = filterDirection(arrayFences, 'left').sort(
+        (a, b) => a[0] - b[0]
+    )
+    const rights = filterDirection(arrayFences, 'right').sort(
+        (a, b) => a[0] - b[0]
+    )
+
+    let topCount = handleFenceCoords2(tops)
+    let bottomCount = handleFenceCoords2(bottoms)
+    let rightCount = handleFenceCoords2(rights, true)
+    let leftCount = handleFenceCoords2(lefts, true)
+
+    return leftCount + rightCount + topCount + bottomCount
 }
 
 const helpFnForMapping = (top) => {
@@ -247,3 +159,55 @@ const helpFnForMapping = (top) => {
 }
 
 module.exports = main
+
+const findFences = (potNei, fences, nodeSet, node) => {
+    if (!nodeSet.has(potNei.toString())) {
+        if (node[0] - potNei[0] > 0) {
+            fences.add('top/' + potNei.toString())
+        }
+        if (node[0] - potNei[0] < 0) {
+            fences.add('bottom/' + potNei.toString())
+        }
+        if (node[1] - potNei[1] > 0) {
+            fences.add('left/' + potNei.toString())
+        }
+        if (node[1] - potNei[1] < 0) {
+            fences.add('right/' + potNei.toString())
+        }
+    }
+}
+
+const filterDirection = (arrayFences, direction) =>
+    arrayFences.filter((node) => node.includes(direction)).map(helpFnForMapping)
+
+const handleFenceCoords2 = (fenceDirectionArray, leftOrRight) => {
+    let count = 0
+    let visitedCoords = new Set()
+    let visitedAnotherCoord = new Map()
+    fenceDirectionArray.forEach((fence) => {
+        const meaningfulCoord = leftOrRight ? fence[1] : fence[0]
+        const anotherCoord = leftOrRight ? fence[0] : fence[1]
+        let alreadyVisitedAnother = visitedAnotherCoord.get(meaningfulCoord)
+        if (!visitedCoords.has(meaningfulCoord)) {
+            count++
+            visitedCoords.add(meaningfulCoord)
+            visitedAnotherCoord.set(meaningfulCoord, [anotherCoord])
+        } else if (
+            alreadyVisitedAnother.some(
+                (element) => Math.abs(element - anotherCoord) === 1
+            )
+        ) {
+            visitedAnotherCoord.set(meaningfulCoord, [
+                ...alreadyVisitedAnother,
+                anotherCoord,
+            ])
+        } else {
+            count++
+            visitedAnotherCoord.set(meaningfulCoord, [
+                ...alreadyVisitedAnother,
+                anotherCoord,
+            ])
+        }
+    })
+    return count
+}
