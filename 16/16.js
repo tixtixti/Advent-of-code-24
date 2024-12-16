@@ -19,14 +19,19 @@ async function main(filename) {
         direction: RIGHT,
         pathTaken: [],
     }
+    const endValue = 79404
+    const endValueLength = 405
     const minValuesPerNode = new Map()
     const stack = [{ ...emptyStackItem }]
-
+    let donePaths = []
     // let currentMim = Number.MAX_SAFE_INTEGER
-    let currentMim = 742316 // lol
+    let currentMim = endValue // lol
     while (stack.length > 0) {
         const currentNode = { ...stack.pop() }
         //console.log(currentNode.currentPosition)
+        if (currentNode.pathTaken.length > 405) {
+            continue
+        }
 
         if (
             !checkPerNode(
@@ -37,6 +42,7 @@ async function main(filename) {
         ) {
             continue
         }
+
         if (
             currentNode.pathTaken.includes(
                 currentNode.currentPosition.toString()
@@ -62,7 +68,10 @@ async function main(filename) {
             continue
         }
         if (currentLocation === 'E') {
-            // console.log(currentNode.pathTaken, currentNode.pathTaken.length)
+            if (currentNode.sum === endValue) {
+                donePaths.push(currentNode.pathTaken)
+            }
+            console.log(currentNode.pathTaken.length)
             currentMim = Math.min(currentMim, currentNode.sum)
             continue
         }
@@ -117,7 +126,12 @@ async function main(filename) {
             }
         }
     }
-    return currentMim
+    let uniques = new Set()
+
+    donePaths.flat().forEach((node) => {
+        uniques.add(node)
+    })
+    return uniques.size
 }
 module.exports = main
 
@@ -172,7 +186,7 @@ const checkPerNode = (mapMap, currentPos, currentSum) => {
     const key = currentPos.toString()
     const sumPerNode = mapMap.get(key)
     if (sumPerNode) {
-        if (currentSum > sumPerNode) {
+        if (currentSum > sumPerNode + 1000) {
             return false
         }
         mapMap.set(key, Math.min(sumPerNode, currentSum))
