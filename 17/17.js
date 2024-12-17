@@ -5,7 +5,7 @@ const B = 'B'
 const C = 'C'
 const registerMap = new Map()
 let output = []
-let pointer = -2
+let pointer = 0
 let skipIncrease = false
 
 async function main(filename) {
