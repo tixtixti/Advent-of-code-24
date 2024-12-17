@@ -12,7 +12,7 @@ async function main() {
             .match(/-?\d\d?\d?,-?\d\d?\d?/g)
             .map((node) => node.split(',').map(Number))
     })
-    while (ticks < 100) {
+    while (ticks < 10000000) {
         let nextPos = r2g.map((line) => {
             const x = line[0][0]
             const y = line[0][1]
@@ -28,9 +28,15 @@ async function main() {
                 floorHeight
             )
         })
-        //console.log(nextPos)
-        await new Promise((r) => setTimeout(r, 500))
-        drawIt(floorHeight, floorWidth, nextPos, ticks)
+
+        const result = robotsInQuadrants(nextPos, floorWidth, floorHeight)
+        // const ab = robotsInQuadrants(nextPos, floorWidth, floorHeight)
+        //console.log(ab)
+        if (result < 100356790) {
+            drawIt(floorHeight, floorWidth, nextPos, ticks)
+            return 0
+        }
+
         ticks++
     }
     return 0
@@ -61,41 +67,47 @@ function calculateFinalPositionMyWay(x, y, xv, yv, ticks, width, height) {
 }
 
 const drawIt = (height, width, currentPos, tick) => {
-    const emptyArray = [...Array(height)].map((row) => [
+    const emptyArray = [...Array(height)].map((_row) => [
         ...Array(width).fill('_'),
     ])
-
-    // const drawable = emptyArray.map((line) => line.join('')).join('\n')
-    // console.log(drawable)
-    let drawItRe = false
-    // console.log(currentPos.length)
-    let setti = new Set()
-    // console.log(setti)
     currentPos.forEach((node, index) => {
         const y = node[0][1]
         const x = node[0][0]
-        //console.log(emptyArray[y][x], x, y)
         let row = emptyArray[y]
         row[x] = '*'
-        //console.log(row)
     })
 
     const drawable = emptyArray.map((line) => line.join('')).join('\n')
 
-    //const drawable = emptyArray[y].join('')
     console.log(drawable, tick)
     console.log('\n')
-    //console.log(drawable)
+}
 
-    /*
-    // console.log(emptyArray[0])
-    let numberRequired = 1
-    if (
-        emptyArray[0].filter((node) => node === '*').length === numberRequired
-    ) {
-        console.log(emptyArray)
-    }
-        */
+const robotsInQuadrants = (allPos, width, height) => {
+    let q1Count = 0
+    let q2Count = 0
+    let q3Count = 0
+    let q4Count = 0
+    const lineWidth = Math.floor(width / 2)
+    const lineHeigh = Math.floor(height / 2)
+
+    allPos.forEach((node) => {
+        const [x, y] = node[0]
+        //console.log({ x, y })
+        if (x < lineWidth && y < lineHeigh) {
+            q1Count++
+        } else if (x > lineWidth && y < lineHeigh) {
+            q2Count++
+        } else if (x < lineWidth && y > lineHeigh) {
+            q3Count++
+        } else if (x > lineWidth && y > lineHeigh) {
+            q4Count++
+        } else {
+            // console.log({ x, y })
+        }
+    })
+    //console.log({ q1Count, q2Count, q3Count, q4Count })
+    return q1Count * q2Count * q3Count * q4Count
 }
 main()
 
