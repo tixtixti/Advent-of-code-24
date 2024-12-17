@@ -1,5 +1,3 @@
-const fs = require('node:fs').promises
-
 const A = 'A'
 const B = 'B'
 const C = 'C'
@@ -8,8 +6,14 @@ let output = []
 let pointer = 0
 let skipIncrease = false
 
-async function main(filename) {
-    const map = (await fs.readFile(filename, 'utf8')).split('\n')
+const input = `Register A: 47719761
+Register B: 9
+Register C: 1
+
+Program: 2,4,1,5,7,5,0,3,4,1,1,6,5,5,3,0
+`
+function main(newA) {
+    const map = input.split('\n')
     let [aRegister, bRegister, cRegister] = map
         .splice(0, 3)
         .map((node) => Number(node.split(': ')[1]))
@@ -21,13 +25,13 @@ async function main(filename) {
         .split(',')
         .map(Number)
 
-    console.log(programValues)
+    //console.log(programValues)
     //console.log({ aRegister, bRegister, cRegister })
 
-    registerMap.set(A, aRegister)
+    registerMap.set(A, newA)
     registerMap.set(B, bRegister)
     registerMap.set(C, cRegister)
-    console.log(registerMap)
+    //console.log(registerMap)
     // do software
 
     // pointer, aina parit, combot pitää lukea jostain muualta. getComboOperandValue
@@ -45,7 +49,7 @@ async function main(filename) {
         }
     }
 
-    console.log(output.toString())
+    // console.log({ tulos: output.toString() })
     return output.toString()
 }
 
@@ -135,4 +139,40 @@ const getComboOperandValue = (operand) => {
             throw new Error('You fucked up')
     }
 }
+/*
+main(281474976710655) // ylin
+main(35184372088832) // alin
+*/
+//main((((((((((2 << 3) << 3) << 3) << 3) << 3) << 3) << 3) << 3) << 3) << 3)
+
+let index = 0
+// oikeasti alin 106184372088832
+// 106_000000000000
+// 137000000000000 // 136900000000000 // 109020000000000 // 109014900000000
+// 281_474_976_710_655 109014860000000
+// 110500000000000
+while (index < 100) {
+    let change = Math.pow(10, 4) * index
+    const luku = 109014860000000 - change
+    //console.log(luku)
+
+    let tulostus = main(luku)
+    let splitted = tulostus.split(',')
+    if (
+        splitted[15] == 0 &&
+        splitted[14] == 3 &&
+        splitted[13] == 5 &&
+        splitted[12] == 5 &&
+        splitted[11] == 6
+    ) {
+        console.log(luku % 8, index, luku, splitted.join(','), splitted.length)
+    }
+    tulostus = []
+    index = index + 1
+    registerMap.clear()
+    output = []
+    pointer = 0
+    skipIncrease = false
+}
+
 module.exports = main

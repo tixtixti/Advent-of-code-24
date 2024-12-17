@@ -9,15 +9,14 @@ test('calculates number of 17-1-test correctly', async () => {
 })
 
 test('calculates number of 17-2-real correctly', async () => {
-    const response = await task('input.txt')
+    const response = await task()
     assert.strictEqual(
         response.split(',').length,
         '2,4,1,5,7,5,0,3,4,1,1,6,5,5,3,0'.split(',').length
     )
     assert.deepEqual(response, '2,4,1,5,7,5,0,3,4,1,1,6,5,5,3,0')
 })
-*/
-test('calculates number of 17-1-real correctly', async () => {
-    const response = await task('superSmall.txt')
-    assert.strictEqual(response, '7,0,3,1,2,6,3,7,1')
-})
+    */
+// 281474976710655 ylin
+// 35184372088832 alin
+// keskeltä 140 737 488 355 328
