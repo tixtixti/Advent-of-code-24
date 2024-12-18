@@ -26,18 +26,39 @@ const directions = [
 const main = async () => {
     const input = await fs.readFile(filename, 'utf8')
 
+    const inputti = input.split('\n')
     const graph = createGraph()
-    const filledGraph = fillGraph(graph, input)
+    const filledGraph = fillGraph(graph, inputti)
 
     const gValues = initializeGValues(filledGraph)
     inputPosition(gValues, start, 0)
 
-    const { openList, closedList } = initializeAStar()
-
-    let pathFound = false
-    while (!pathFound) {
-        pathFound = aStartStepHandler(openList, closedList, filledGraph)
+    let runningIndex = 0
+    let killSwitch = false
+    while (true) {
+        if (killSwitch) {
+            break
+        }
+        const { openList, closedList } = initializeAStar()
+        console.log(runningIndex)
+        addToGraph(filledGraph, inputti[bytes + runningIndex])
+        let pathFound = false
+        while (!pathFound) {
+            let [ab, killer] = aStartStepHandler(
+                openList,
+                closedList,
+                filledGraph
+            )
+            pathFound = ab
+            if (killer) {
+                console.log(runningIndex)
+                pathFound = true
+                killSwitch = true
+            }
+        }
+        runningIndex++
     }
+    console.log(inputti[bytes + runningIndex - 1])
 }
 const createGraph = () => {
     const arrayMap = [...Array(GRID_WIDTH)].map(() => [
@@ -48,13 +69,18 @@ const createGraph = () => {
 const fillGraph = (graph, input) => {
     const copyOfGraph = [...graph]
 
-    input.split('\n').forEach((node, index) => {
+    input.forEach((node, index) => {
         if (index < bytes) {
             const [x, y] = node.split(',').map(Number)
             copyOfGraph[y][x] = WALL
         }
     })
     return copyOfGraph
+}
+
+const addToGraph = (graph, node) => {
+    const [x, y] = node.split(',').map(Number)
+    graph[y][x] = WALL
 }
 const printMap = (map) => {
     let printMap = [...map]
@@ -101,13 +127,14 @@ const initializeAStar = () => {
 }
 const aStartStepHandler = (openList, closedList, filledGraph) => {
     if (openList.length === 0) {
-        return false
+        console.log('DONE ZO, NO PATHS ')
+        return [false, true]
     }
     const bestNode = openList.sort((a, b) => b.f - a.f).pop()
     //console.log('explored', bestNode)
     if (bestNode.position.toString() === GOAL_COORDS.toString()) {
-        console.log('DONE ZO', bestNode)
-        return true
+        //console.log('DONE ZO', bestNode)
+        return [true]
     }
     const neighbors = getNeighbors(filledGraph, bestNode.position)
 
@@ -143,7 +170,7 @@ const aStartStepHandler = (openList, closedList, filledGraph) => {
         }
     })
     closedList.add(bestNode.position.toString())
-    return false
+    return [false]
 }
 
 main()
