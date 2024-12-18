@@ -188,5 +188,63 @@ for (let index = 0; index < 16; index++) {
     candidates = newCandidates
 }
 
+let stackItem = {
+    innerIndex: 0,
+    currentValue: 199_9999_9999_9999,
+}
+
+let expectedOutput = [2, 4, 1, 5, 7, 5, 0, 3, 4, 1, 1, 6, 5, 5, 3, 0]
+
+let outerIndex = 1
+let stack = [stackItem]
+let allSolutions = []
+while (outerIndex < 16) {
+    let newStack = []
+    while (stack.length > 0) {
+        const currentItem = stack.pop()
+
+        let currentValue = currentItem.currentValue
+
+        stackInnerIndex = 0
+        while (stackInnerIndex < 10) {
+            //console.log(stackInnerIndex)
+            let smallArray = currentValue.toString().split('')
+
+            let expectedSequence = [...expectedOutput].splice(
+                expectedOutput.length - outerIndex,
+                outerIndex
+            )
+            smallArray[outerIndex] = stackInnerIndex
+            let inputX = Number(smallArray.join(''))
+
+            let outputX = main(inputX)
+
+            let splitted = outputX.split(',')
+            let expectedSplitted = [...splitted].splice(
+                expectedOutput.length - outerIndex,
+                outerIndex
+            )
+
+            if (expectedSequence.toString() == expectedSplitted.toString()) {
+                if (expectedOutput.toString() === splitted.toString()) {
+                    allSolutions.push(inputX)
+                }
+                //console.log(inputX, outputX)
+                newStack.push({
+                    currentValue: inputX,
+                })
+            }
+
+            stackInnerIndex = stackInnerIndex + 1
+            reset()
+        }
+    }
+    stack = [...newStack]
+    outerIndex++
+}
+
+console.log(allSolutions.sort().find((node) => node === 1090200257_20585))
 //console.log(main(Number(longestIs.join(''))))
+reset()
+console.log(main(1090200132_01563))
 module.exports = main
