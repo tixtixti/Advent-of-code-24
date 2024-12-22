@@ -1,5 +1,6 @@
 const AStar = require('./AStar.js')
 const GraphLibrary = require('./GraphLibrary.js')
+const { bfsFindAllRoutes } = require('./BFS.js')
 
 const A = 'A'
 const numPad = [
@@ -50,55 +51,48 @@ const abba = {
     },
 }
 
-const routes = ['029A', '980A', '179A', '456A', '379A'] // test
-//const routes = ['540A', '839A', '682A', '826A', '974A'] //real
-//const routes = ['179A']
+function generateCombinations(lines) {
+    const results = []
+
+    function helper(currentCombination, index) {
+        if (index === lines.length) {
+            // We've chosen one item per line; add to results
+            results.push(currentCombination)
+            return
+        }
+
+        // Iterate over each item in the current line
+        for (const item of lines[index]) {
+            helper([...currentCombination, item], index + 1)
+        }
+    }
+
+    helper([], 0)
+    return results
+}
+
+//const routes = ['029A', '980A', '179A', '456A', '379A'] // test
+const routes = ['540A', '839A', '682A', '826A', '974A'] //real
+//const routes = ['029A']
 //const routes = ['456A']
 
 // eka setti breah first ja sitten vaan käyt kaikki läpi?`
+
 const handleStep = (route, graph) => {
-    return route.split('').reduce((prev, curr, index, self) => {
+    const allRoutesPerStep = []
+    route.split('').forEach((curr, index, self) => {
         let startCoord = index === 0 ? A : self[index - 1]
-        let pathFound = false
-        /*
-        if (startCoord == A && curr == 4) {
-            pathFound = ['^', '^', '<', '<']
-        }
-        if (startCoord == 4 && curr == A) {
-            pathFound = ['v', 'v', '>', '>']
-        }
-        if (startCoord == 2 && curr == A) {
-            pathFound = ['v', '>']
-        }
-        if (startCoord == 8 && curr == 3) {
-            pathFound = ['v', 'v', '>']
-        }
-            */
-        /*
-        if (startCoord == A && curr == 8) {
-            pathFound = ['<', '^', '^', '^']
-        }
-        if (startCoord == 6 && curr == 8) {
-            pathFound = ['<', '^']
-        }
-        */
+
         const start = GraphLibrary.findStartingPoint(graph, startCoord).flat()
         const end = GraphLibrary.findStartingPoint(graph, curr).flat()
 
-        let { openList, closedList } = AStar.initializeAStar(start, end, numPad)
-
-        while (!pathFound) {
-            pathFound = AStar.aStartStepHandler(
-                openList,
-                closedList,
-                graph,
-                end
-            )
-        }
-
-        //console.log(pathFound.sort())
-        return prev + pathFound.join('') + A
-    }, '')
+        const allRoutes = bfsFindAllRoutes(numPad, start, end)
+        let mid = allRoutes.map((node) => [...node, A])
+        allRoutesPerStep.push(mid)
+    })
+    return generateCombinations(allRoutesPerStep).map((node) =>
+        node.flat().join('')
+    )
 }
 
 const secondarySteps = (route) => {
@@ -110,17 +104,21 @@ const secondarySteps = (route) => {
 }
 
 const res = routes.reduce((prev, route) => {
-    const summary = handleStep(route, numPad)
-    console.log({ l: summary.length, summary, route })
+    const allRoutesAsString = handleStep(route, numPad)
+    const midSteps = allRoutesAsString.map((node) => {
+        return secondarySteps(node)
+    })
 
-    const dd = secondarySteps(summary)
-    //const dd =
-    //console.log({ l: dd.length, dd })
+    const finalSteps = midSteps.map((node) => {
+        return secondarySteps(node)
+    })
 
-    const final = secondarySteps(dd)
+    const finalScore = finalSteps.reduce(
+        (prev, node) => Math.min(prev, node.length),
+        20000
+    )
+
     const other = Number(route.split('').splice(0, 3).join(''))
-    console.log({ l: final.length, other, route })
-    return prev + final.length * other
+    return prev + finalScore * other
 }, 0)
-console.log(res) // too high 284652 284652 278028
-//293356
+console.log(res)
