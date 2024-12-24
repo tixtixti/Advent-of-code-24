@@ -15,39 +15,39 @@ const keyPad = [
 ]
 const abba = {
     '>': {
-        '^': ['<', '^', 'A'],
-        A: ['^', 'A'],
-        v: ['<', 'A'],
-        '<': ['<', '<', 'A'],
-        '>': ['A'],
+        '^': ['<', '^'],
+        A: ['^'],
+        v: ['<'],
+        '<': ['<', '<'],
+        '>': [],
     },
     v: {
-        '^': ['^', 'A'],
-        A: ['^', '>', 'A'],
-        '<': ['<', 'A'],
-        '>': ['>', 'A'],
-        v: ['A'],
+        '^': ['^'],
+        A: ['^', '>'],
+        '<': ['<'],
+        '>': ['>'],
+        v: [],
     },
     '^': {
-        A: ['>', 'A'],
-        v: ['v', 'A'],
-        '<': ['v', '<', 'A'],
-        '>': ['>', 'v', 'A'],
-        '^': ['A'],
+        A: ['>'],
+        v: ['v'],
+        '<': ['v', '<'],
+        '>': ['>', 'v'],
+        '^': [],
     },
     A: {
-        '^': ['<', 'A'],
-        v: ['v', '<', 'A'],
-        '<': ['v', '<', '<', 'A'],
-        '>': ['v', 'A'],
-        A: ['A'],
+        '^': ['<'],
+        v: ['v', '<'],
+        '<': ['v', '<', '<'],
+        '>': ['v'],
+        A: [],
     },
     '<': {
-        '^': ['>', '^', 'A'],
-        A: ['>', '>', '^', 'A'],
-        v: ['>', 'A'],
-        '>': ['>', '>', 'A'],
-        '<': ['A'],
+        '^': ['>', '^'],
+        A: ['>', '>', '^'],
+        v: ['>'],
+        '>': ['>', '>'],
+        '<': [],
     },
 }
 
@@ -99,60 +99,27 @@ const secondarySteps = (route) => {
     //console.log(route)
     return route.split('').reduce((prev, curr, index, self) => {
         let startCoord = index === 0 ? A : self[index - 1]
-        return prev + abba[startCoord][curr].join('')
+        return prev + abba[startCoord][curr].join('') + A
     }, '')
 }
 
-const calculateSingleInputTimes = (char, prev, temp, i) => {
-    if (i === 0) {
-        console.log(temp, char, prev)
-        return temp
-    }
-    //  const key = `${char}_${i}`
-
-    let allChanges = abba[prev][char]
-    let result = 0
-    allChanges.forEach((change) => {
-        result += calculateSingleInputTimes(
-            change,
-            char,
-            temp + allChanges.length,
-            i - 1
-        )
-    })
-    return result
-}
-/*
 const res = routes.reduce((prev, route) => {
     const allRoutesAsString = handleStep(route, numPad)
 
-    let tempSteps = allRoutesAsString[2]
-    console.log(tempSteps)
-
-    // let result = 0
-    //const stack = []
-
-    // Initialize the stack
-    const result = tempSteps.split('').reduce((prev, node, index, self) => {
-        let startCoord = index === 0 ? A : self[index - 1]
-        const ab = calculateSingleInputTimes(node, startCoord, 0, 1)
-        return prev + ab
-    }, 0)
-
-    /*
+    let tempSteps = allRoutesAsString
+    let i = 0
+    while (i < 2) {
+        tempSteps = tempSteps.map((node) => {
+            return secondarySteps(node)
+        })
+        i++
+    }
     const finalScore = tempSteps.reduce(
         (prev, node) => Math.min(prev, node.length),
-        20000
+        Infinity
     )
 
-    console.log({ result })
     const other = Number(route.split('').splice(0, 3).join(''))
-    return prev + result * other
+    return prev + finalScore * other
 }, 0)
-*/
-const ab = calculateSingleInputTimes('^', 'A', 0, 1)
-console.log(ab)
-//console.log(res)
-
-// ['v', '<', '<', 'A']
-//
+console.log(res)
