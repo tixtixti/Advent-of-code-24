@@ -15,39 +15,39 @@ const keyPad = [
 ]
 const abba = {
     '>': {
-        '^': ['<', '^'],
-        A: ['^'],
-        v: ['<'],
-        '<': ['<', '<'],
-        '>': [],
+        '^': ['<', '^', 'A'],
+        A: ['^', 'A'],
+        v: ['<', 'A'],
+        '<': ['<', '<', 'A'],
+        '>': ['A'],
     },
     v: {
-        '^': ['^'],
-        A: ['^', '>'],
-        '<': ['<'],
-        '>': ['>'],
-        v: [],
+        '^': ['^', 'A'],
+        A: ['^', '>', 'A'],
+        '<': ['<', 'A'],
+        '>': ['>', 'A'],
+        v: ['A'],
     },
     '^': {
-        A: ['>'],
-        v: ['v'],
-        '<': ['v', '<'],
-        '>': ['>', 'v'],
-        '^': [],
+        A: ['>', 'A'],
+        v: ['v', 'A'],
+        '<': ['v', '<', 'A'],
+        '>': ['>', 'v', 'A'],
+        '^': ['A'],
     },
     A: {
-        '^': ['<'],
-        v: ['v', '<'],
-        '<': ['v', '<', '<'],
-        '>': ['v'],
-        A: [],
+        '^': ['<', 'A'],
+        v: ['v', '<', 'A'],
+        '<': ['v', '<', '<', 'A'],
+        '>': ['v', 'A'],
+        A: ['A'],
     },
     '<': {
-        '^': ['>', '^'],
-        A: ['>', '>', '^'],
-        v: ['>'],
-        '>': ['>', '>'],
-        '<': [],
+        '^': ['>', '^', 'A'],
+        A: ['>', '>', '^', 'A'],
+        v: ['>', 'A'],
+        '>': ['>', '>', 'A'],
+        '<': ['A'],
     },
 }
 
@@ -71,9 +71,9 @@ function generateCombinations(lines) {
     return results
 }
 
-//const routes = ['029A', '980A', '179A', '456A', '379A'] // test
-//const routes = ['540A', '839A', '682A', '826A', '974A'] //real
-const routes = ['029A']
+const routes = ['029A', '980A', '179A', '456A', '379A'] // test //126384
+//const routes = ['540A', '839A', '682A', '826A', '974A'] //real //278568
+//const routes = ['029A']
 //const routes = ['456A']
 
 // eka setti breah first ja sitten vaan käyt kaikki läpi?`
@@ -99,7 +99,7 @@ const secondarySteps = (route) => {
     //console.log(route)
     return route.split('').reduce((prev, curr, index, self) => {
         let startCoord = index === 0 ? A : self[index - 1]
-        return prev + abba[startCoord][curr].join('') + A
+        return prev + abba[startCoord][curr].join('')
     }, '')
 }
 
