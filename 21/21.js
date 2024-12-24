@@ -103,14 +103,12 @@ const secondarySteps = (route) => {
     }, '')
 }
 
-const calculateSingleInputTimes = (char, prev, temp, i, precomputedResults) => {
+const calculateSingleInputTimes = (char, prev, temp, i) => {
     if (i === 0) {
+        console.log(temp, char, prev)
         return temp
     }
-    const key = `${char}_${i}`
-    if (precomputedResults.has(key)) {
-        return precomputedResults.get(key) // Return cached result
-    }
+    //  const key = `${char}_${i}`
 
     let allChanges = abba[prev][char]
     let result = 0
@@ -119,50 +117,42 @@ const calculateSingleInputTimes = (char, prev, temp, i, precomputedResults) => {
             change,
             char,
             temp + allChanges.length,
-            i - 1,
-            precomputedResults
+            i - 1
         )
     })
-    precomputedResults.set(key, result)
     return result
 }
-const precomputedResults = new Map()
+/*
 const res = routes.reduce((prev, route) => {
     const allRoutesAsString = handleStep(route, numPad)
 
     let tempSteps = allRoutesAsString[2]
     console.log(tempSteps)
 
-    let result = 0
-    const stack = []
+    // let result = 0
+    //const stack = []
 
     // Initialize the stack
-    tempSteps.split('').forEach((node) => {
-        stack.push({ item: node, remainingBlinks: 2 })
-    })
-
-    while (stack.length > 0) {
-        const process = stack.shift()
-
-        // Compute result on-demand and cache it
-        const computed = calculateSingleInputTimes(
-            process.item,
-            A,
-            result,
-            process.remainingBlinks,
-            precomputedResults
-        )
-        result += computed
-    }
+    const result = tempSteps.split('').reduce((prev, node, index, self) => {
+        let startCoord = index === 0 ? A : self[index - 1]
+        const ab = calculateSingleInputTimes(node, startCoord, 0, 1)
+        return prev + ab
+    }, 0)
 
     /*
     const finalScore = tempSteps.reduce(
         (prev, node) => Math.min(prev, node.length),
         20000
     )
-*/
+
     console.log({ result })
     const other = Number(route.split('').splice(0, 3).join(''))
     return prev + result * other
 }, 0)
-console.log(res)
+*/
+const ab = calculateSingleInputTimes('^', 'A', 0, 1)
+console.log(ab)
+//console.log(res)
+
+// ['v', '<', '<', 'A']
+//
