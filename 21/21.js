@@ -70,7 +70,6 @@ function generateCombinations(lines) {
     helper([], 0)
     return results
 }
-
 const routes = ['029A', '980A', '179A', '456A', '379A'] // test //126384
 //const routes = ['540A', '839A', '682A', '826A', '974A'] //real //278568
 //const routes = ['029A']
@@ -95,29 +94,33 @@ const handleStep = (route, graph) => {
     )
 }
 
-const secondarySteps = (route) => {
-    //console.log(route)
-    return route.split('').reduce((prev, curr, index, self) => {
-        let startCoord = index === 0 ? A : self[index - 1]
-        return prev + abba[startCoord][curr].join('')
-    }, '')
+const secondaryStepsRecGPT = (routes, rounds) => {
+    const buildPaths = (route) => {
+        return route.map((node) => {
+            let result = ''
+            for (let i = 0; i < node.length; i++) {
+                const startCoord = i === 0 ? A : node[i - 1]
+                const curr = node[i]
+                result += abba[startCoord][curr].join('')
+            }
+            return result
+        })
+    }
+
+    let currentRoutes = routes
+
+    for (let i = 0; i < rounds; i++) {
+        currentRoutes = buildPaths(currentRoutes)
+    }
+
+    return currentRoutes
 }
 
 const res = routes.reduce((prev, route) => {
-    const allRoutesAsString = handleStep(route, numPad)
-
-    let tempSteps = allRoutesAsString
-    let i = 0
-    while (i < 2) {
-        tempSteps = tempSteps.map((node) => {
-            return secondarySteps(node)
-        })
-        i++
-    }
-    const finalScore = tempSteps.reduce(
-        (prev, node) => Math.min(prev, node.length),
-        Infinity
-    )
+    const finalScore = handleStep(route, numPad)
+        .map((node) => secondaryStepsRecGPT([node], 2))
+        .flat()
+        .reduce((prev, node) => Math.min(prev, node.length), Infinity)
 
     const other = Number(route.split('').splice(0, 3).join(''))
     return prev + finalScore * other
