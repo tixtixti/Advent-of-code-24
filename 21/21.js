@@ -32,12 +32,12 @@ const abba = {
         A: ['>', 'A'],
         v: ['v', 'A'],
         '<': ['v', '<', 'A'],
-        '>': ['>', 'v', 'A'],
+        '>': ['v', '>', 'A'],
         '^': ['A'],
     },
     A: {
         '^': ['<', 'A'],
-        v: ['v', '<', 'A'],
+        v: ['<', 'v', 'A'],
         '<': ['v', '<', '<', 'A'],
         '>': ['v', 'A'],
         A: ['A'],
@@ -71,8 +71,9 @@ function generateCombinations(lines) {
     return results
 }
 
-const routes = ['029A', '980A', '179A', '456A', '379A'] // test //126384
+//const routes = ['029A', '980A', '179A', '456A', '379A'] // test //126384
 //const routes = ['540A', '839A', '682A', '826A', '974A'] //real //278568
+const routes = ['286A', '974A', '189A', '802A', '805A'] // mika
 //const routes = ['029A']
 //const routes = ['456A']
 
@@ -114,7 +115,6 @@ const secondaryStepsCache = (route, round) => {
 
 const calculateStepsWithStack = (startCoord, curr, remainingRounds) => {
     const key = `${startCoord}_${curr}_${remainingRounds}`
-
     // Check if the result is cached
     if (memoizationMap.has(key)) {
         return memoizationMap.get(key)
@@ -127,10 +127,16 @@ const calculateStepsWithStack = (startCoord, curr, remainingRounds) => {
     // Stack-based iterative processing
     while (stack.length > 0) {
         const { startCoord, curr, remainingRounds } = stack.pop()
-
+        const loopKey = `${startCoord}_${curr}_${remainingRounds}`
+        if (memoizationMap.has(loopKey)) {
+            totalPaths += memoizationMap.get(loopKey)
+            continue
+        }
         // Base case: no more rounds
         if (remainingRounds - 1 === 0) {
-            totalPaths += abba[startCoord][curr].length
+            const baseResult = abba[startCoord][curr].length
+            memoizationMap.set(loopKey, baseResult)
+            totalPaths += baseResult
             continue
         }
 
@@ -144,7 +150,9 @@ const calculateStepsWithStack = (startCoord, curr, remainingRounds) => {
                 curr: nextDir,
                 remainingRounds: remainingRounds - 1,
             })
+            // inLoopMemoizition.set(loopKey, totalPaths)
         })
+        //memoizationMap.set(loopKey, totalPaths)
     }
 
     // Cache the result
@@ -154,34 +162,70 @@ const calculateStepsWithStack = (startCoord, curr, remainingRounds) => {
 
 const memoizationMap = new Map() // Cache for results
 
-const res = routes.reduce((prev, route) => {
-    const allRoutesAsString = handleStep(route, numPad)
+const minBigInt = (...values) => {
+    return values.reduce((min, val) => (val < min ? val : min), values[0])
+}
 
-    let tempSteps = allRoutesAsString
-    let i = 0
-    /*
-    while (i < 2) {
-        tempSteps = tempSteps.map((node) => {
-            return secondarySteps(node, 2)
+let allCombs = []
+Object.keys(abba).forEach((start) => {
+    Object.keys(abba[start]).forEach((end) => {
+        allCombs.push([start, end])
+    })
+})
+allCombs.sort((a) => (a[0] === A ? -1 : 1))
+
+let i = 1
+while (i < 26) {
+    allCombs.forEach((comb) => {
+        calculateStepsWithStack(comb[0], comb[1], i)
+    })
+    i++
+}
+
+console.log(memoizationMap)
+
+const main = () => {
+    const res = routes.reduce((prev, route) => {
+        const allRoutesAsString = handleStep(route, numPad)
+
+        const temp = allRoutesAsString.map((route) =>
+            secondaryStepsCache(route, 2)
+        )
+
+        const finalScore = temp.reduce(
+            (prev, node) => minBigInt(prev, node),
+            Infinity
+        )
+        console.log(finalScore)
+        const other = Number(route.split('').splice(0, 3).join(''))
+        return prev + finalScore * other
+    }, 0)
+    console.log(res.toString())
+}
+//main()
+
+const main2 = (rounds) => {
+    let sum = 0
+    routes.forEach((route) => {
+        const allRoutesAsString = handleStep(route, numPad)
+        const abba2 = allRoutesAsString.map((routeAsString) => {
+            const routeAsStringAsArray = routeAsString.split('')
+            return routeAsStringAsArray.reduce((prev, char, index, self) => {
+                let startCoord = index === 0 ? A : self[index - 1]
+                return prev + calculateStepsWithStack(startCoord, char, rounds)
+            }, 0)
         })
-
-        i++
-    }
-    const finalScore = tempSteps.reduce(
-        (prev, node) => Math.min(prev, node.length),
-        Infinity
-    )
-*/
-    const temp = allRoutesAsString.map((route) => secondaryStepsCache(route, 2))
-    const finalScore = temp.reduce(
-        (prev, node) => Math.min(prev, node),
-        Infinity
-    )
-    console.log({ finalScore })
-    const other = Number(route.split('').splice(0, 3).join(''))
-    return prev + finalScore * other
-}, 0)
-console.log(res)
-
-//console.log(secondaryStepsCache('<A<^A', 16))
-// console.log(secondaryStepsCache('<A^A>^^AvvvA', 2))
+        sum =
+            sum +
+            abba2.reduce((prev, node) => Math.min(prev, node), Infinity) *
+                Number(route.split('').splice(0, 3).join(''))
+        //console.log(allRoutesAsString)
+    })
+    console.log(sum)
+}
+main2(2)
+main2(25)
+console.log({ target: 154115708116294, oldSetup: 246309145921294 })
+// 246744542483274
+// 246309145921294
+// 154115708116294
