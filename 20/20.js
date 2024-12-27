@@ -19,58 +19,52 @@ async function main() {
     const start = findStartingPoint(graph, 'S').flat()
     const end = findStartingPoint(graph, 'E').flat()
 
-    const allWalls = findAllOccurances(graph, WALL)
-
-    const cheatWalls = allWalls.filter(
-        (node) => getNeighbors(graph, node).length > 1
-    )
-
     let { openList, closedList } = initializeAStar(start, end)
     let pathFound = false
-    let baseRouteG = 0
-    const hardCounter = 100
+    let baseRoute = null
+    let baseRouteG = null
     while (!pathFound) {
         pathFound = aStartStepHandler(openList, closedList, graph, end)
         if (pathFound) {
-            baseRouteG = pathFound
+            baseRoute = pathFound[0]
+            baseRouteG = pathFound[1]
         }
     }
-    pathFound = false
-    const cheatScores = new Map()
-    console.log(cheatWalls.length)
-    for (let index = 0; index < cheatWalls.length; index++) {
-        const cheatWall = cheatWalls[index]
+    let interableArray = []
+    baseRoute.forEach((baseRoute, index, self) => {
+        interableArray.push({
+            route: baseRoute,
+            g: baseRouteG[index],
+        })
+    })
+    //console.log(interableArray)
+    // console.log({ baseRouteG, baseRoute })
 
-        const cheatGraph = JSON.parse(JSON.stringify(graph))
-        inputPosition(cheatGraph, cheatWall, FLOOR)
+    let current = interableArray.shift()
+    let sum = 0
+    while (interableArray.length > 0) {
+        let nodesInRadius = interableArray.filter((next) =>
+            nodesWithinDistance(current.route, next.route, 20)
+        )
 
-        const { openList, closedList } = initializeAStar(start, end)
-        let pathFound = false
-        while (!pathFound) {
-            pathFound = aStartStepHandler(openList, closedList, cheatGraph, end)
-            if (pathFound) {
-                const key = baseRouteG - pathFound
-                if (cheatScores.get(key)) {
-                    cheatScores.set(key, cheatScores.get(key) + 1)
-                } else {
-                    cheatScores.set(key, 1)
-                }
-            }
-        }
+        let validNodes = nodesInRadius.filter(
+            (next) =>
+                next.g -
+                    current.g -
+                    getManhattanValue(current.route, next.route) >=
+                100
+        )
+
+        sum += validNodes.length
+
+        current = interableArray.shift()
     }
-
-    const ab = Array.from(cheatScores.keys())
-    const res = ab.reduce((prev, curr) => {
-        if (curr >= hardCounter) {
-            return prev + cheatScores.get(curr)
-        }
-        return prev
-    }, 0)
-    console.log({ res })
-    //  printMap(graph, start)
+    console.log(sum)
 }
 main()
-
+const nodesWithinDistance = (node1, node2, distance) => {
+    return getManhattanValue(node1, node2) <= distance
+}
 const findStartingPoint = (allInOne, symbol = '@') => {
     const startingCoords = []
     allInOne.forEach((node, index) => {
@@ -129,8 +123,10 @@ const initializeAStar = (start, end) => {
     openList.push({
         position: start,
         h: manhattanValueStart,
-        g: 0, // or should we do read pos?
+        g: 0,
         f: manhattanValueStart, // h + g
+        route: [start],
+        gRoute: [0],
     })
     return { openList, closedList }
 }
@@ -140,8 +136,8 @@ const aStartStepHandler = (openList, closedList, filledGraph, end) => {
     }
     const bestNode = openList.sort((a, b) => b.f - a.f).pop()
     if (bestNode.position.toString() === end.toString()) {
-        // console.log('DONE ZO', bestNode)
-        return bestNode.g
+        // console.log('DONE ZO', bestNode.route)
+        return [bestNode.route, bestNode.gRoute]
     }
     const neighbors = getNeighbors(filledGraph, bestNode.position)
 
@@ -161,6 +157,8 @@ const aStartStepHandler = (openList, closedList, filledGraph, end) => {
                     h: newH,
                     g: newG,
                     f: newF,
+                    route: [...bestNode.route, neighbor],
+                    gRoute: [...bestNode.gRoute, newG],
                 })
             } else if (newG < existingValues.g) {
                 const indexOfExisting = openList.findIndex(
