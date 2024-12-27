@@ -4,6 +4,10 @@ const FILENAME = 'test.txt'
 //const FILENAME = 'input.txt'
 //const FILENAME = 'smallInput.txt'
 
+// change calculation to results
+// start caching results
+// ez ?
+
 async function main() {
     const input = await fs.readFile(FILENAME, 'utf8')
     const lines = input.split('\n')
@@ -13,33 +17,13 @@ async function main() {
         .flat()
         .map((node) => node.trim())
     let towelSet = new Set()
-    let towelScores = new Map()
-    let calculatedScore = new Map()
     towels.forEach((node) => towelSet.add(node))
 
-    towels.sort((a, b) => a.length - b.length)
-    towels.forEach((node) => towelScores.set(node, 1))
-
     const result = lines.reduce((prev, curr) => {
-        /*
-        const possibleCombinations = handleSingeLineForInput(
-            curr,
-            towelSet,
-            towelScores,
-            calculatedScore
-        )*/
         const possibleCombinations = handleSingeLine(curr, towelSet)
-        console.log(possibleCombinations)
-        return prev + possibleCombinations.length
-    }, 0)
-
-    /*
-    const result = lines.reduce((prev, curr) => {
-        const possibleCombinations = fiftyFifty(curr, towelSet)
         return prev + possibleCombinations
     }, 0)
-*/
-    // const result = 0
+
     console.log({ result })
     return result
 }
@@ -49,15 +33,18 @@ const handleSingeLine = (line, towelSet) => {
     const stackItem = {
         foundTowels: [],
         remainingString: [...lineASChars],
+        combinationsFound: 0,
     }
     const stack = [stackItem]
     let foundTowelSystems = []
-
+    let totalCombinations = 0
     while (stack.length > 0) {
-        let { foundTowels, remainingString } = stack.pop()
+        let { foundTowels, remainingString, combinationsFound } = stack.shift()
         if (foundTowels.join('') == line) {
+            console.log({ foundTowels, combinationsFound })
+            // console.log('Found', foundTowels.join(','))
+            totalCombinations++
             foundTowelSystems.push(foundTowels)
-
             continue
         }
 
@@ -65,96 +52,23 @@ const handleSingeLine = (line, towelSet) => {
         for (let index = 0; index < remainingString.length; index++) {
             const element = remainingString[index]
             stringHelper = stringHelper.concat(element)
+            console.log(remainingString, element, stringHelper)
             if (towelSet.has(stringHelper)) {
                 // check if string helper
                 const currentCombination = [...foundTowels, stringHelper]
 
-                stack.push({
+                stack.unshift({
                     foundTowels: currentCombination,
                     remainingString: [...remainingString].splice(
                         index + 1,
                         remainingString.length
                     ),
+                    combinationsFound: combinationsFound + 1,
                 })
             }
         }
     }
-    return foundTowelSystems
-}
-
-const calculateSubStringScores = (subString, towels, calculatedScore) => {
-    const res = handleSingeLine(subString, towels)
-    if (res.length > 0) {
-        calculatedScore.set(subString, res.length)
-        return res.length
-    } else {
-        return false
-    }
-}
-
-const handleSingeLineForInput = (
-    line,
-    towelSet,
-    towelScores,
-    calculatedScore
-) => {
-    const lineASChars = line.split('')
-    const stackItem = {
-        foundTowels: [],
-        remainingString: [...lineASChars],
-        score: 0,
-    }
-    const stack = [stackItem]
-
-    let counter = 0
-    while (stack.length > 0) {
-        let { foundTowels, remainingString, score } = stack.pop()
-        if (foundTowels.join('') == line) {
-            counter++
-            continue
-        }
-
-        let stringHelper = ''
-        for (let index = 0; index < remainingString.length; index++) {
-            const element = remainingString[index]
-
-            const reversed = [...remainingString]
-                .reverse()
-                .splice(0, remainingString.length - index)
-            let reversedScore = 0
-            if (reversed.length < remainingString.length / 2) {
-                if (!towelSet.has(reversed.join(''))) {
-                    if (calculatedScore.get(reversed.join(''))) {
-                        reversedScore = calculatedScore.get(reversed.join(''))
-                    } else {
-                        const shr = handleSingeLine(reversed.join(''), towelSet)
-                        reversedScore = shr.length
-                        calculatedScore.set(reversed.join(''), reversedScore)
-                    }
-                } else {
-                    reversedScore = towelScores.get(reversed.join(''))
-                }
-            }
-            stringHelper = stringHelper.concat(element)
-            if (towelSet.has(stringHelper) || reversedScore > 0) {
-                const currentCombination =
-                    reversedScore > 0
-                        ? [...foundTowels, stringHelper, reversed]
-                        : [...foundTowels, stringHelper]
-
-                stack.push({
-                    foundTowels: currentCombination,
-                    score:
-                        score + towelScores.get(stringHelper) + reversedScore,
-                    remainingString: [...remainingString].splice(
-                        index + 1,
-                        remainingString.length
-                    ),
-                })
-            }
-        }
-    }
-    return counter
+    return totalCombinations
 }
 
 main()
