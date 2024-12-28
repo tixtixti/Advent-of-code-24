@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 
 fn main() {
@@ -24,6 +25,17 @@ fn main() {
                 summa = summa + abs;
             }
             println!("summa {}", summa); // part 1
+            let mut counts = HashMap::new();
+            for &num in &second_numbers {
+                *counts.entry(num).or_insert(0) += 1;
+            }
+            let mut sum2: i32 = 0;
+            for first in first_numbers.iter() {
+                if let Some(&count) = counts.get(&first) {
+                    sum2 = sum2 + (first * &count)
+                }
+            }
+            println!("sum2 {}", sum2); // part 2
         }
         Err(error) => {
             eprintln!("{}", error)
