@@ -19,11 +19,12 @@ fn main() {
 
             first_numbers.sort();
             second_numbers.sort();
+
             let mut summa: i32 = 0;
             for (first, second) in first_numbers.iter().zip(second_numbers.iter()) {
-                let abs = (first - second).abs();
-                summa = summa + abs;
+                summa += (first - second).abs();
             }
+
             println!("summa {}", summa); // part 1
             let mut counts = HashMap::new();
             for &num in &second_numbers {
